@@ -8,7 +8,7 @@ layout: post
 
 背景：两个springCloud项目之间有调用插入数据库的业务，需要使用分布式事务确保数据的一致性，由于原来服务发现就是使用了阿里的nacos，所以分布式事务框架也选择回阿里的seata。
 
-## 两个系统框架的版本如下
+**两个系统框架的版本如下**
 |框架名字|版本|
 |:---|:---|
 |jdk|17|
@@ -31,7 +31,7 @@ layout: post
 初步想法是服务A的回滚只是本地事务触发了，而不是seata引起的。
 在我反复对照官方demo和自己的配置没有任何差别以后，开始了排查之路。
 
-## 了解SEATA的事务机制
+**了解SEATA的事务机制**
 因为我的数据库都是mysql，存储引擎是InnoDB，支持本地ACID事务，所以用的是AT模式。先回顾一下AT模式是怎么工作的，首先AT模式分成了两阶段提交
 
 - 一阶段：业务数据和回滚日志记录在同一个本地事务中提交，释放本地锁和连接资源。
@@ -55,7 +55,7 @@ layout: post
 netty工作是正常的，那就是RM是正常工作的，那么TC 、RM、TM之间是正常沟通的，但是为什么事务会不生效的呢？
 后来再查阅相关的文章，发现原来这个seata的控制台里面的全局锁信息菜单，显示的其实是哪些资源被锁定了，这个锁定是为了防止并发事务出现事务不一致的问题，在当前的业务里面，仅仅只是各自的数据库新插入一条，TC根据全局事务和其他分支事务的状态，决定是否授予锁，并将决定返回给 RM，有可能是TC认为不需要加锁(为了优化速度)而导致在控制台没有看到有全局锁的信息。
 
-## 排查undo_log表
+**排查undo_log表**
 接下来开始聚焦在undo_log表上，数据是根据undo_log表里面的记录进行回滚的，那么我得看一看undo_log表里面有没有记录到信息，重新调试业务，发现undo_log表里面并没有记录到数据。经查阅，记录undo_log表是在BaseTransactionalExecutor.prepareUndoLog()方法执行的，调试发现，在执行
 ```
 if (beforeImage.getRows().isEmpty() && afterImage.getRows().isEmpty()) {
@@ -75,7 +75,7 @@ if (beforeImage.getRows().isEmpty() && afterImage.getRows().isEmpty()) {
 直到执行到PreparedStatementHandler.update(Statement statement)这个方法，在执行execute的时候发现进入了PreparedStatementProxy.execute()里面，可以看到这里已经由mybatis转到seata了，证明seata已经正常自动代理了。这时候就能看出来问题了，mybatis把自增主键set回去实体类里面的是在PreparedStatementHandler执行完操作后，而seata代理进行记录undo_log表的操作是在PreparedStatementHandler执行操作的过程中，才导致了seata想获取新增主键值，但是值还是0。
 ![image](https://github.com/user-attachments/assets/ceefcd12-8574-4485-b992-1e07bf5a1244)
 
-## 解决主键不自增的问题
+**解决主键不自增的问题**
 同样的调试在serverA再试一次，我惊奇地发现，serverA是能正常在记录undo_log表的时候能获取到自增后的id的，这到底是怎么回事呢？观察PreparedStatement后发现里面的sql语句是不包含id的！
 ![image](https://github.com/user-attachments/assets/1a64ee05-771a-495b-9288-603538b12440)
 对比一下两边的新增实体，serverA的数据是这样插入的
@@ -84,7 +84,7 @@ if (beforeImage.getRows().isEmpty() && afterImage.getRows().isEmpty()) {
 ![image](https://github.com/user-attachments/assets/d5ffd06d-07ab-4815-91c0-c7abaf330ed5)
 然后我试了一下在serverB里面显式地把id置为null。结果，serverB可以获取到自增后的id了，并且全局事务两个server都能正常回滚了。
 
-## 继续查找导致两者区别的原因
+**继续查找导致两者区别的原因**
 我想知道，到底是什么原因导致明明是一样用mybatisplus插入，为什么两边却呈现两种不一样的结果？带着疑问继续调试源码，找一下是在哪里生成的targetSQL语句，在SimpleExecutor.doUpdate(MappedStatement ms, Object parameter)方法里面，看到了把parameter参数带进去newStatementHandler里面，而parameter里面是有字段和值的信息的，里面的new RoutingStatementHandler可以看到构造器里面会根据不同的类型生成不同的处理器，里面会一直调用到父类BaseStatementHandler的构造器，其中就看到了在这个地方生成了boundSql。
 ![image](https://github.com/user-attachments/assets/cfe44109-458f-4b9d-be83-09f7bdec75b5)
 而这个generateKeys(parameterObject)方法看上去非常像是生成自增值的方法，再点进去看，wtf？
@@ -99,7 +99,7 @@ if (beforeImage.getRows().isEmpty() && afterImage.getRows().isEmpty()) {
 ![image](https://github.com/user-attachments/assets/32454253-32ae-447d-b7e9-567e0e2550c0)
 所以这里为什么parameterObject里面同样都存在id:0，但是经过getBoundSql以后，得到的boundSql一个是有id的，一个是没有id的。仔细一看原来是sqlSource的实现类不一样。serverA用的是RawSqlSource，而serverB用的是DynamicSqlSource。
 
-## 探究sqlSource
+**探究sqlSource**
 先查阅一下资料，RawSqlSource是用来处理静态SQL语句，而DynamicSqlSource是用来处理动态SQL语句，所以RawSqlSource是在启动应用的时候mybatis就自动初始化好了，追踪到MybatisXMLScriptBuilder,parseScriptNode()方法，看到parseDynamicTags生成出来的对象就会设置好这个sql是否属于动态sql，再往下看parseDynamicTags(XNode node)方法，在textSqlNode.isDynamic()里面parser.parse(text)这个方法就是用来判断并且标记是不是动态sql的，查看里面的逻辑
 ![image](https://github.com/user-attachments/assets/80f0e2ca-43f0-4038-92d1-4373be6ae89c)
 原来是看sql语句里面有没有包含${}这种动态SQL语句来判断的。
@@ -107,7 +107,7 @@ if (beforeImage.getRows().isEmpty() && afterImage.getRows().isEmpty()) {
 ![image](https://github.com/user-attachments/assets/e7ddd391-782f-4cee-9c0b-e7e723750481)
 再次去查证，结果发现是serverA的xml文件里面写了insert方法和update方法，所以才会在MybatisSqlSessionFactoryBean.buildSqlSessionFactory()的时候就能扫描出来，然后后面的insert就是使用写好的这个语句了，才没有id！这才是导致两个server会有两种不同表现的原因。
 
-## 怎么解决填充自增ID的步骤在执行seata之后？
+**怎么解决填充自增ID的步骤在执行seata之后？**
 经过上面的探索，首先明确了：1、无法插入undo_log是由于获取主键值异常导致seata select不到新增的记录数据。 2、造成一个服务正常获取主键值，一个服务不正常获取主键值的原因是正常获取的xml里面写了insert语句，mybatis调用的是xml里面的语句，而不是Mybatis-plus自动生成的。
 然后我开始查找到底mybatis-plus是怎么帮我新增insert语句的，经过调试，启动程序的时候会调用DefaultSqlInjector.getMethodList初始化，其中一行
 `.add(new Insert(dbConfig.isInsertIgnoreAutoIncrementColumn()))`
