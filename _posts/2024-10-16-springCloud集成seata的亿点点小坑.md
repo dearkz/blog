@@ -10,7 +10,7 @@ layout: post
 
 ## 两个系统框架的版本如下
 |框架名字|版本|
-|--|--|
+|:---|:---|
 |jdk|17|
 |springboot|3.2.7|
 |org.springframework.cloud|2023.0.3|
