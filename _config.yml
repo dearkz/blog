@@ -1,6 +1,6 @@
 # Configurations
 title:            leopold blog
-longtitle:        学习，分享
+longtitle:        leopold blog
 author:           leopold hu
 email:            lichhero620@gmail.com
 description: >
@@ -9,7 +9,7 @@ description: >
 version:          1.0
 gitbook_version:  3.2.3
 
-url:              'https://sighingnow.github.io'
+url:              'https://dearkz.outfu.bid/'
 baseurl:          '/'
 rss:              RSS
 
