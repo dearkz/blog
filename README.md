@@ -1,6 +1,6 @@
 ---
 layout: home
-title: Leopold Blog
+title: 导航
 permalink: /
 ---
 
