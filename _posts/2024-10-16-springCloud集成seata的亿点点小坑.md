@@ -1,3 +1,11 @@
+---
+title: springCloud集成seata的亿点点小坑
+author: leopold hu
+date: 2024-10-16
+category: Jekyll
+layout: post
+---
+
 背景：两个springCloud项目之间有调用插入数据库的业务，需要使用分布式事务确保数据的一致性，由于原来服务发现就是使用了阿里的nacos，所以分布式事务框架也选择回阿里的seata。
 
 ### 两个系统框架的版本如下

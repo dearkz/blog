@@ -1,3 +1,11 @@
+---
+title: bean生命周期的初始化总结
+author: leopold hu
+date: 2024-10-16
+category: Jekyll
+layout: post
+---
+
 1、首先了解spring bean是个啥玩意
 bean其实就是对象，是一个可以让spring进行管理的对象，他在代码里面是叫BeanDefinition，他是通过反射出来的
 

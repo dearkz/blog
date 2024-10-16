@@ -1,3 +1,11 @@
+---
+title: bean的循环依赖问题
+author: leopold hu
+date: 2024-10-16
+category: Jekyll
+layout: post
+---
+
 **springboot2.6以后allowCircularReferences默认是false，也就是默认不支持用户使用自动解决循环依赖的功能，需要用户自己去理清依赖关系，建议通过重构代码、采取@Lazy注解等方式进行解决。可在配置文件中显式设置为true**
 
 重要类:
