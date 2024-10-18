@@ -1,3 +1,11 @@
+---
+title: mybatis架构设计
+author: leopold hu
+date: 2024-10-18
+category: Jekyll
+layout: post
+---
+
 ![mybatis架构设计](../images/mybatis架构.jpg)
 
 >**mybatis**
