@@ -14,6 +14,7 @@ permalink: /
 
 - [手写持久层框架](https://dearkz.outfu.bid/pages/%E6%89%8B%E5%86%99%E6%8C%81%E4%B9%85%E5%B1%82%E6%A1%86%E6%9E%B6/)。
 - [mybatis框架设计](https://dearkz.outfu.bid/pages/mybatis框架设计/)。
+- [手写mybatis插件](https://dearkz.outfu.bid/pages/手写mybatis插件/)
 
 ### 踩坑实录
 
