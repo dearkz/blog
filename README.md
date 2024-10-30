@@ -15,7 +15,6 @@ permalink: /
 - [手写持久层框架](https://dearkz.outfu.bid/jekyll/2024-10-16-手写持久层框架.html)
 - [mybatis框架设计](https://dearkz.outfu.bid/jekyll/2024-10-18-mybatis架构设计.html)
 - [手写mybatis插件](https://dearkz.outfu.bid/jekyll/2024-10-16-手写mybatis插件.html)
-- [Sentinel框架](https://dearkz.outfu.bid/jekyll/2024-10-25-sentinel框架.html)
 
 ### 踩坑实录
 
@@ -25,3 +24,7 @@ permalink: /
 
 - [tomcat之初始化Catalina容器](https://dearkz.outfu.bid/jekyll/2024-10-30-tomcat之初始化Catalina容器.html)
 - [tomcat之启动Catalina容器](https://dearkz.outfu.bid/jekyll/2024-10-31-tomcat之启动Catalina容器.html)
+
+### sentinel算法
+
+- [Sentinel框架](https://dearkz.outfu.bid/jekyll/2024-10-25-sentinel框架.html)
